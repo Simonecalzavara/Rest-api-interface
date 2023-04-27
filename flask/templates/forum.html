@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Forum</title>
+  </head>
+  <body>
+    <h1>Benvenuto al nostro Forum!</h1>
+    
+    <!-- Visualizzazione dei topic -->
+    <h2>Topic</h2>
+    <ul>
+      <li><a href="#topic1">Topic 1</a></li>
+      <li><a href="#topic2">Topic 2</a></li>
+      <li><a href="#topic3">Topic 3</a></li>
+    </ul>
+    
+    <!-- Form per l'inserimento di un nuovo messaggio -->
+    <h2>Scrivi un messaggio</h2>
+    <form action = " http://192.168.66.128:8080/forum" method= "POST,GET">
+      <label for="topic">Seleziona il topic:</label>
+      <select id="topic" name="topic">
+        <option value="topic1">Topic 1</option>
+        <option value="topic2">Topic 2</option>
+        <option value="topic3">Topic 3</option>
+      </select>
+      <br>
+      <label for="name">Nome:</label>
+      <input type="text" id="name" name="name">
+      <br>
+      <label for="message">Messaggio:</label>
+      <textarea id="message" name="message"></textarea>
+      <br>
+      <button type="submit">Invia</button>
+    </form>
+    
+    <!-- Visualizzazione dei messaggi per ogni topic -->
+    <h2>Messaggi</h2>
+    <div id="topic1">
+      <h3>Topic 1</h3>
+      <ul>
+        <li>
+          <strong>Nome utente:</strong> Alice<br>
+          <strong>Messaggio:</strong> Ciao a tutti!
+        </li>
+        <li>
+          <strong>Nome utente:</strong> Bob<br>
+          <strong>Messaggio:</strong> Sono nuovo qui, piacere di conoscervi!
+        </li>
+      </ul>
+    </div>
+    <div id="topic2">
+      <h3>Topic 2</h3>
+      <ul>
+        <li>
+          <strong>Nome utente:</strong> Charlie<br>
+          <strong>Messaggio:</strong> Qualcuno ha consigli su un buon libro da leggere?
+        </li>
+      </ul>
+    </div>
+    <div id="topic3">
+      <h3>Topic 3</h3>
+      <ul>
+        <li>
+          <strong>Nome utente:</strong> David<br>
+          <strong>Messaggio:</strong> Cosa ne pensate del nuovo film di supereroi?
+        </li>
+        <li>
+          <strong>Nome utente:</strong> Eve<br>
+          <strong>Messaggio:</strong> A me è piaciuto molto!
+        </li>
+      </ul>
+    </div>
+  </body>
+</html>

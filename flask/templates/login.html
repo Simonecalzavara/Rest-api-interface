@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Login</title>
+</head>
+<body>
+	<h1>Login</h1>
+	<form method="POST" action="/login">
+		<label for="username">Username:</label>
+		<input type="text" id="username" name="username"><br><br>
+		<label for="password">Password:</label>
+		<input type="password" id="password" name="password"><br><br>
+		<input type="submit" value="Accedi">
+	</form>
+	<div id="token"></div>
+	<script>
+		document.querySelector('form').addEventListener('submit', async (event) => {
+			event.preventDefault();
+			const formData = new FormData(event.target);
+			const response = await fetch('/login', {
+					method: 'POST',
+					body: formData,
+				}
+			});
+			const data = await response.json();
+			document.querySelector('#token').textContent = data.access_token;
+		});
+	</script>
+</body>
+</html>
