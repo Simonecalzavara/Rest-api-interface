@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify, render_template, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 from flask_jwt_extended import JWTManager, jwt_required, create_access_token
 from flask_socketio import SocketIO, send
+import logging
 import socket
 
 app = Flask(__name__)
@@ -13,29 +14,48 @@ db = SQLAlchemy(app)
 jwt = JWTManager(app)
 socketio = SocketIO(app)
 
-BROKER_IP = '127.0.0.1'
-BROKER_PORT = 40008
-
-class User(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(50), unique=True, nullable=False)
-    password = db.Column(db.String(100), nullable=False)
-    
+BROKER_IP = '127.0.0.4'
+BROKER_PORT = 40001
 
 
-def connect_to_broker():
+def connect_to_broker(message):
     # Creazione del socket TCP
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         # Connessione al broker
         s.connect((BROKER_IP, BROKER_PORT))
         s.sendall(message.encode('utf-8'))
 
-        
-def send_message_to_broker(message):
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+
+class User(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(50), unique=True, nullable=False)
+    password = db.Column(db.String(100), nullable=False)
     
-        # Invio del messaggio al broker
-        s.sendall(message.encode('utf-8'))
+    
+    
+class BrokerConnection:
+    def __init__(self):
+        self.socket = None
+
+    def connect(self):
+        if not self.socket:
+            self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self.socket.connect((BROKER_IP, BROKER_PORT))
+
+    def send_message(self, message):
+        if self.socket:
+            self.socket.sendall(message.encode("utf-8"))
+
+    def close(self):
+        if self.socket:
+            try:
+                self.socket.shutdown(socket.SHUT_RDWR)
+            except OSError:
+                pass
+            self.socket.close()
+
+broker_connection = BrokerConnection()
+    
 
 @app.route('/')
 def hello():
@@ -73,8 +93,11 @@ def login():
 
             if user.password == password:
                 access_token = create_access_token(identity=user.id)
-                send_message_to_broker('[CONNECT]')
-                return redirect(url_for('forum'))
+
+                broker_connection.connect()
+                broker_connection.send_message('[CONNECT]')
+                return redirect(url_for('message'))
+            
             else:
                 return render_template('login.html', error='Invalid username or password')
         else:
@@ -85,8 +108,8 @@ def login():
 @app.route('/forum', methods=['GET','POST'])
 def forum():
     if request.method == 'POST':
-    
     	topic = request.form['topic']
+    	print(topic)
     	send_message_to_broker('[SUBSCRIBE] {"topic":"%s","message":"%s"}' % ("topic", "message"))
     	message = request.form['message']
     	
@@ -98,33 +121,23 @@ def forum():
      
      	return render_template('forum.html')
 
-@app.route('/message', methods=['GET','POST'])
+logger = logging.getLogger(__name__)
+
+@app.route('/message', methods=['GET', 'POST'])
 def message():
     if request.method == 'POST':
-    
-    
-    	with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        # Connessione al broker
-       	    s.connect((BROKER_IP, BROKER_PORT))
-       	    
-       	    #connection = '[CONNECT]\n'
-       	    
-       	    #s.sendall(connection.encode("UTF-8"))
-       	    #s.recv(1024)
-       	    
-       	    message_prova = '[SUBSCRIBE]{"topic":"casa"}\n'
-       	    print(message_prova.encode())
-       	    s.sendall(message_prova.encode())
-       	    #s.recv(1024)
-       	    #topic = request.form['topic']
-       	    #message = request.form['message']
-       	    #send_message_to_broker('[SEND] {"topic":"%s","message":"%s"}' % ("topic", "message")
-            return render_template('message.html')
-    
-    else: 
-    	
+        message_prova = '[SUBSCRIBE]{"topic":"casa"}\n'
+            
+        broker_connection.send_message(message_prova)
+        
+        message_prova = '[SEND]{"topic":"casa","message":"ciao"}\n'
+            
+        broker_connection.send_message(message_prova)
+        
+
         return render_template('message.html')
-    
+    else:
+        return render_template('message.html')
     
 @app.route('/publish', methods=['GET','POST'])
 def publish():
